@@ -22,24 +22,47 @@ int * nameproc_1_svc(name* NAME, struct svc_req *arg2)
 
 name * l1n1proc_2_svc(name* NAME, struct svc_req *arg2)
 {
-	char res[15];
-	printf("%s\n", NAME->content);
-	if (strcmp(NAME->content,"youtube.com") == 0)
-		strcpy(res, "192.153.122.198");
-	else if (strcmp(NAME->content,"gmail.com") == 0)
-		strcpy(res, "192.111.165.033");
-	else if (strcmp(NAME->content,"google.com") == 0)
-		strcpy(res, "163.100.88.056");
-	else if (strcmp(NAME->content,"facebook.com") == 0)
-		strcpy(res, "139.233.69.017");
-	else if (strcmp(NAME->content,"news.ycombinator.com") == 0)
-		strcpy(res, "158.96.23.63");
-	else if (strcmp(NAME->content,"livemint.com") == 0)
-		strcpy(res, "155.88.22.049");
-	name *response;
-	strncpy(response->content, res, 15);
+	FILE * fp;
+	char * line = NULL; //Contains line read from file
+	size_t len = 0; //Buffer Size, Initially set to zero.(Still working. :p)
+	ssize_t read; //Contains the number of characters read from a line
+	char res[15];  //Contains the ip
+	char required[50];  //Contains the domain name
+	char *dname;  //Used for locating given substring in line
+	bool found = false; //equals true if domain name in text file
+
+	strcpy(required, NAME->content);
+	fp = fopen("com.txt", "r");
+
+	//Failed to open file
+	if (fp == NULL)
+		exit(EXIT_FAILURE);
+
+
+
+	while ((read = getline(&line, &len, fp)) != -1)
+	{
+		char *dname = strstr(line,required);
+		if(dname)
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if(found)
+		strcpy(res,line+strlen(required)+1);
+
+	//Close the file
+	fclose(fp);
+	
+	//Create new response struct using malloc
+	struct name *response = (struct name*)malloc(sizeof(struct name));
+	strcpy(response->content, res);
+	
 	return response;
 }
+
 int * l1n2proc_3_svc(name* NAME, struct svc_req *arg2)
 {
 	char last[3];
